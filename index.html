@@ -2,10 +2,18 @@
 <html>
 <body style="background:#111; display:flex; flex-direction:column; align-items:center;">
 
-<!-- SCORES -->
+<!-- SCORES & CONTROLS -->
 <div style="color:white; font-family:Arial; font-size:28px; margin:10px;">
     <div id="score">Score: 0</div>
     <div id="topscore">Topscore: 0</div>
+    <div style="font-size:16px; margin-top:10px;">
+        Speed: <select id="speed" style="font-size:16px; padding:2px;">
+            <option value="800">Slow</option>
+            <option value="500" selected>Normal</option>
+            <option value="300">Fast</option>
+            <option value="150">Very Fast</option>
+        </select>
+    </div>
 </div>
 
 <!-- SPEL -->
@@ -175,6 +183,11 @@ function arenaSweep(){
 
 let dropCounter=0;
 let lastTime=0;
+let dropInterval=500;
+
+document.getElementById("speed").addEventListener("change", e => {
+    dropInterval = parseInt(e.target.value);
+});
 
 const player={
   pos:{x:5,y:0},
@@ -186,7 +199,7 @@ function update(t=0){
   const dt=t-lastTime; lastTime=t;
   dropCounter+=dt;
 
-  if(dropCounter>500){
+  if(dropCounter>dropInterval){
     player.pos.y++;
     if(collide(arena,player)){
       player.pos.y--;
