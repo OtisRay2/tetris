@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#111; display:flex; justify-content:center;">
+<canvas id="game" width="240" height="400"></canvas>
+
+<script>
+// --- Canvas en grid ---
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+ctx.scale(20, 20);
+
+const arena = createMatrix(12, 20);
+
+const colors = [null, "#f00", "#0f0", "#00f", "#ff0", "#0ff", "#f0f", "#fff"];
+
+function createPiece(type) {
+  if (type === "T") return [[0,1,0],[1,1,1],[0,0,0]];
+  if (type === "O") return [[1,1],[1,1]];
+  if (type === "L") return [[0,0,1],[1,1,1],[0,0,0]];
+  if (type === "J") return [[1,0,0],[1,1,1],[0,0,0]];
+  if (type === "I") return [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]];
+  if (type === "S") return [[0,1,1],[1,1,0],[0,0,0]];
+  if (type === "Z") return [[1,1,0],[0,1,1],[0,0,0]];
+}
+
+function createMatrix(w, h) {
+  const m = [];
+  while (h--) m.push(new Array(w).fill(0));
+  return m;
+}
+
+function collide(arena, player) {
+  const [m,o] = [player.matrix, player.pos];
+  for (let y=0; y<m.length; y++) {
+    for (let x=0; x<m[y].length; x++) {
+      if (m[y][x] !== 0 &&
+          (arena[y+o.y] && arena[y+o.y][x+o.x]) !== 0) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function merge(arena, player) {
+  player.matrix.forEach((row,y)=>{
+    row.forEach((v,x)=>{
+      if (v !== 0) arena[y+player.pos.y][x+player.pos.x] = v;
+    });
+  });
+}
+
+function drawMatrix(matrix, offset) {
+  matrix.forEach((row,y)=>{
+    row.forEach((v,x)=>{
+      if (v !== 0) {
+        ctx.fillStyle = colors[v];
+        ctx.fillRect(x+offset.x, y+offset.y, 1, 1);
+      }
+    });
+  });
+}
+
+function draw() {
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  drawMatrix(arena, {x:0,y:0});
+  drawMatrix(player.matrix, player.pos);
+}
+
+function rotate(matrix, dir) {
+  // Transpose
+  for (let y = 0; y < matrix.length; y++) {
+    for (let x = 0; x < y; x++) {
+      [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+    }
+  }
+  // Links of rechts draaien
+  if (dir > 0) {
+    matrix.forEach(row => row.reverse());
+  } else {
+    matrix.reverse();
+  }
+}
+
+
+function playerReset() {
+  const pieces = "TJLOSZI";
+  player.matrix = createPiece(pieces[Math.floor(Math.random()*7)]);
+  player.pos.y = 0;
+  player.pos.x = (arena[0].length/2|0) - (player.matrix[0].length/2|0);
+  if (collide(arena, player)) {
+    arena.forEach(row=>row.fill(0)); // reset bij game over
+  }
+}
+
+function arenaSweep() {
+  for (let y=arena.length-1; y>=0; y--) {
+    if (arena[y].every(v=>v!==0)) {
+      arena.splice(y,1);
+      arena.unshift(new Array(12).fill(0));
+      y++;
+    }
+  }
+}
+
+let dropCounter = 0;
+let lastTime = 0;
+const player = {pos:{x:5,y:0}, matrix:null};
+
+function update(t=0) {
+  const dt = t - lastTime;
+  lastTime = t;
+  dropCounter += dt;
+
+  if (dropCounter > 500) {
+    player.pos.y++;
+    if (collide(arena,player)) {
+      player.pos.y--;
+      merge(arena,player);
+      arenaSweep();
+      playerReset();
+    }
+    dropCounter = 0;
+  }
+
+  draw();
+  requestAnimationFrame(update);
+}
+
+document.addEventListener("keydown", e=>{
+  if (e.key==="ArrowLeft"){ player.pos.x--; if(collide(arena,player)) player.pos.x++; }
+  if (e.key==="ArrowRight"){ player.pos.x++; if(collide(arena,player)) player.pos.x--; }
+  if (e.key==="ArrowDown"){ player.pos.y++; if(collide(arena,player)) player.pos.y--; }
+  if (e.key==="ArrowUp"){
+    const old = JSON.parse(JSON.stringify(player.matrix));
+    rotate(player.matrix);
+    if (collide(arena,player)) player.matrix = old;
+  }
+});
+
+playerReset();
+update();
+</script>
+</body>
+</html>
