@@ -9,7 +9,7 @@
     <div style="font-size:16px; margin-top:10px;">
         Speed: <select id="speed" style="font-size:16px; padding:2px;">
             <option value="800">Slow</option>
-            <option value="500" selected>Normal</option>
+            <option value="500">Normal</option>
             <option value="300">Fast</option>
             <option value="150">Very Fast</option>
         </select>
@@ -183,10 +183,15 @@ function arenaSweep(){
 
 let dropCounter=0;
 let lastTime=0;
-let dropInterval=500;
+let dropInterval = parseInt(localStorage.getItem("tetris_speed") || "500");
 
-document.getElementById("speed").addEventListener("change", e => {
+// Initialize speed dropdown from saved preference
+const speedSelect = document.getElementById("speed");
+speedSelect.value = dropInterval.toString();
+
+speedSelect.addEventListener("change", e => {
     dropInterval = parseInt(e.target.value);
+    localStorage.setItem("tetris_speed", dropInterval);
 });
 
 const player={
