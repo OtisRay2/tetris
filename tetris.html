@@ -4,6 +4,33 @@
 <canvas id="game" width="240" height="400"></canvas>
 
 <script>
+// --- GELUIDSENGINE (Web Audio API) ---
+const audio = new (window.AudioContext || window.webkitAudioContext)();
+
+// eenvoudige biep-generator
+function playBeep(freq = 440, duration = 0.08, type="square", volume=0.15) {
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+
+    gain.gain.value = volume;
+    osc.connect(gain);
+    gain.connect(audio.destination);
+
+    osc.start();
+    osc.stop(audio.currentTime + duration);
+}
+
+// SOUND EFFECTS
+const SFX = {
+    move:   () => playBeep(300, 0.05, "square", 0.08),
+    rotate: () => playBeep(500, 0.06, "sawtooth", 0.1),
+    drop:   () => playBeep(120, 0.12, "square", 0.15),
+    clear:  () => playBeep(700, 0.25, "triangle", 0.25),
+    gameover: () => playBeep(80, 0.6, "sine", 0.3),
+};
+
 // --- Canvas en grid ---
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -15,16 +42,11 @@ const arena = createMatrix(12, 20);
 // Random kleuren
 const colors = [
   null,
-  "#ff4b4b", // rood
-  "#4bff4b", // groen
-  "#4b4bff", // blauw
-  "#ffff4b", // geel
-  "#4bffff", // cyaan
-  "#ff4bff", // magenta
-  "#ffffff", // wit
+  "#ff4b4b", "#4bff4b", "#4b4bff",
+  "#ffff4b", "#4bffff", "#ff4bff", "#ffffff",
 ];
 
-// --- TETRIS PIECES ---
+// --- PIECES ---
 function createPiece(type) {
   if (type === "T") return [[0,1,0],[1,1,1],[0,0,0]];
   if (type === "O") return [[1,1],[1,1]];
@@ -46,7 +68,7 @@ function collide(arena, player) {
   for (let y=0; y<m.length; y++) {
     for (let x=0; x<m[y].length; x++) {
       if (m[y][x] !== 0 &&
-        (arena[y+o.y] && arena[y+o.y][x+o.x]) !== 0) {
+          (arena[y+o.y] && arena[y+o.y][x+o.x]) !== 0) {
         return true;
       }
     }
@@ -57,22 +79,7 @@ function collide(arena, player) {
 function merge(arena, player) {
   player.matrix.forEach((row,y)=>{
     row.forEach((v,x)=>{
-      if (v !== 0) {
-        arena[y + player.pos.y][x + player.pos.x] = player.color;
-      }
-    });
-  });
-}
-
-function drawMatrix(matrix, offset, colorOverride) {
-  matrix.forEach((row,y)=>{
-    row.forEach((v,x)=>{
-      if (v !== 0) {
-        // Gebruik kleur van blok of kleurOverride
-        const color = colorOverride || colors[v];
-        ctx.fillStyle = color;
-        ctx.fillRect(x + offset.x, y + offset.y, 1, 1);
-      }
+      if (v !== 0) arena[y+player.pos.y][x+player.pos.x] = player.color;
     });
   });
 }
@@ -81,7 +88,7 @@ function draw() {
   ctx.fillStyle = "#000";
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // Arena tekenen
+  // arena tekenen
   arena.forEach((row,y)=>{
     row.forEach((v,x)=>{
       if (v !== 0) {
@@ -91,18 +98,27 @@ function draw() {
     });
   });
 
-  // Speler tekenen
+  // speler tekenen
   drawMatrix(player.matrix, player.pos, colors[player.color]);
 }
 
+function drawMatrix(matrix, offset, colorOverride) {
+  matrix.forEach((row,y)=>{
+    row.forEach((v,x)=>{
+      if (v !== 0) {
+        ctx.fillStyle = colorOverride;
+        ctx.fillRect(x+offset.x, y+offset.y, 1, 1);
+      }
+    });
+  });
+}
+
 function rotate(matrix, dir) {
-  // transpose
   for (let y=0; y<matrix.length; y++) {
     for (let x=0; x<y; x++) {
       [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
     }
   }
-  // draaien
   if (dir > 0) matrix.forEach(r => r.reverse());
   else matrix.reverse();
 }
@@ -110,45 +126,49 @@ function rotate(matrix, dir) {
 function playerReset() {
   const pieces = "TJLOSZI";
   player.matrix = createPiece(pieces[Math.floor(Math.random()*7)]);
-  player.color = Math.floor(Math.random() * 7) + 1; // RANDOM KLEUR
-
+  player.color = Math.floor(Math.random()*7) + 1;
   player.pos.y = 0;
-  player.pos.x = (arena[0].length/2 | 0) - (player.matrix[0].length/2 | 0);
+  player.pos.x = (arena[0].length/2|0) - (player.matrix[0].length/2|0);
 
   if (collide(arena, player)) {
-    arena.forEach(row => row.fill(0)); // GAME OVER -> reset
+    arena.forEach(row=>row.fill(0));
+    SFX.gameover();
   }
 }
 
 function arenaSweep() {
-  for (let y = arena.length - 1; y >= 0; y--) {
-    if (arena[y].every(v => v !== 0)) {
-      arena.splice(y, 1);
+  let cleared = 0;
+  for (let y=arena.length-1; y>=0; y--) {
+    if (arena[y].every(v=>v!==0)) {
+      arena.splice(y,1);
       arena.unshift(new Array(12).fill(0));
+      cleared++;
       y++;
     }
   }
+  if (cleared > 0) SFX.clear();
 }
 
 let dropCounter = 0;
 let lastTime = 0;
 
 const player = {
-  pos: {x:5, y:0},
-  matrix: null,
-  color: 1,
+  pos:{x:5,y:0},
+  matrix:null,
+  color:1,
 };
 
-function update(t = 0) {
+function update(t=0) {
   const dt = t - lastTime;
   lastTime = t;
   dropCounter += dt;
 
   if (dropCounter > 500) {
     player.pos.y++;
-    if (collide(arena, player)) {
+    if (collide(arena,player)) {
       player.pos.y--;
-      merge(arena, player);
+      merge(arena,player);
+      SFX.drop();
       arenaSweep();
       playerReset();
     }
@@ -159,23 +179,28 @@ function update(t = 0) {
   requestAnimationFrame(update);
 }
 
-document.addEventListener("keydown", e=>{
+// --- INPUT ---
+document.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") {
     player.pos.x--;
-    if (collide(arena, player)) player.pos.x++;
+    if (collide(arena,player)) player.pos.x++;
+    else SFX.move();
   }
   if (e.key === "ArrowRight") {
     player.pos.x++;
-    if (collide(arena, player)) player.pos.x--;
+    if (collide(arena,player)) player.pos.x--;
+    else SFX.move();
   }
   if (e.key === "ArrowDown") {
     player.pos.y++;
-    if (collide(arena, player)) player.pos.y--;
+    if (collide(arena,player)) player.pos.y--;
+    else SFX.move();
   }
   if (e.key === "ArrowUp") {
     const old = JSON.parse(JSON.stringify(player.matrix));
     rotate(player.matrix, 1);
-    if (collide(arena, player)) player.matrix = old;
+    if (collide(arena,player)) player.matrix = old;
+    else SFX.rotate();
   }
 });
 
