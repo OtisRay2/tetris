@@ -7,9 +7,12 @@
     <div id="score">Score: 0</div>
     <div id="topscore">Topscore: 0</div>
     <div style="font-size:16px; margin-top:10px;">
+        Name: <input id="player-name" type="text" maxlength="10" placeholder="Enter name" style="font-size:16px; padding:2px; width:100px;">
+    </div>
+    <div style="font-size:16px; margin-top:10px;">
         Speed: <select id="speed" style="font-size:16px; padding:2px;">
             <option value="800">Slow</option>
-            <option value="500" selected>Normal</option>
+            <option value="500">Normal</option>
             <option value="300">Fast</option>
             <option value="150">Very Fast</option>
         </select>
@@ -17,25 +20,86 @@
 </div>
 
 <!-- SPEL -->
-<canvas id="game" width="240" height="400"></canvas>
+<div style="position:relative;">
+    <canvas id="game" width="240" height="400"></canvas>
+    <div id="gameover" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; flex-direction:column; justify-content:center; align-items:center; color:white; font-family:Arial;">
+        <div style="font-size:32px; font-weight:bold; color:#ff4b4b; margin-bottom:20px;">GAME OVER</div>
+        <div style="font-size:18px; margin-bottom:10px;">Final Score: <span id="final-score">0</span></div>
+        <div id="new-highscore" style="font-size:16px; color:#4bff4b; margin-bottom:15px; display:none;">New High Score!</div>
+        <div id="highscore-display" style="font-size:14px; color:#ffff4b; margin-bottom:20px; padding:10px; background:rgba(255,255,255,0.1); border-radius:5px;">
+            High Score: <span id="highscore-name">---</span> - <span id="highscore-value">0</span>
+        </div>
+        <button id="restart-btn" style="padding:10px 30px; font-size:18px; cursor:pointer; background:#4b4bff; color:white; border:none; border-radius:5px;">Play Again</button>
+        <div style="font-size:12px; margin-top:15px; color:#888;">Press SPACE to restart</div>
+    </div>
+</div>
 
 <script>
+// ---------------- GAME STATE ----------------
+let gameOver = false;
+
 // ---------------- SCORE ----------------
 let score = 0;
 let topscore = parseInt(localStorage.getItem("tetris_topscore") || "0");
+let topscoreName = localStorage.getItem("tetris_topscore_name") || "---";
+
+// Initialize player name from localStorage
+const playerNameInput = document.getElementById("player-name");
+playerNameInput.value = localStorage.getItem("tetris_player_name") || "";
+
+// Save player name when changed
+playerNameInput.addEventListener("input", e => {
+    localStorage.setItem("tetris_player_name", e.target.value);
+});
+
+function getPlayerName() {
+    return playerNameInput.value.trim() || "Anonymous";
+}
 
 function updateScoreDisplay() {
     document.getElementById("score").innerText = "Score: " + score;
-    document.getElementById("topscore").innerText = "Topscore: " + topscore;
+    document.getElementById("topscore").innerText = "Topscore: " + topscore + " (" + topscoreName + ")";
 }
 
 function addScore(rows) {
     score += rows * 100;
     if (score > topscore) {
         topscore = score;
+        topscoreName = getPlayerName();
         localStorage.setItem("tetris_topscore", topscore);
+        localStorage.setItem("tetris_topscore_name", topscoreName);
     }
     updateScoreDisplay();
+}
+
+// ---------------- GAME OVER ----------------
+function showGameOver() {
+    gameOver = true;
+    const isNewHighScore = score > 0 && score >= topscore;
+
+    // If new high score, update with current player name
+    if (isNewHighScore) {
+        topscore = score;
+        topscoreName = getPlayerName();
+        localStorage.setItem("tetris_topscore", topscore);
+        localStorage.setItem("tetris_topscore_name", topscoreName);
+        updateScoreDisplay();
+    }
+
+    document.getElementById("final-score").innerText = score;
+    document.getElementById("new-highscore").style.display = isNewHighScore ? "block" : "none";
+    document.getElementById("highscore-name").innerText = topscoreName;
+    document.getElementById("highscore-value").innerText = topscore;
+    document.getElementById("gameover").style.display = "flex";
+}
+
+function restartGame() {
+    gameOver = false;
+    score = 0;
+    updateScoreDisplay();
+    arena.forEach(row => row.fill(0));
+    document.getElementById("gameover").style.display = "none";
+    playerReset();
 }
 
 // ---------------- GELUID ----------------
@@ -157,10 +221,8 @@ function playerReset(){
   player.pos.x=(arena[0].length/2|0)-(player.matrix[0].length/2|0);
 
   if(collide(arena,player)){
-    arena.forEach(row=>row.fill(0));
     SFX.gameover();
-    score = 0;
-    updateScoreDisplay();
+    showGameOver();
   }
 }
 
@@ -183,10 +245,15 @@ function arenaSweep(){
 
 let dropCounter=0;
 let lastTime=0;
-let dropInterval=500;
+let dropInterval = parseInt(localStorage.getItem("tetris_speed") || "500");
 
-document.getElementById("speed").addEventListener("change", e => {
+// Initialize speed dropdown from saved preference
+const speedSelect = document.getElementById("speed");
+speedSelect.value = dropInterval.toString();
+
+speedSelect.addEventListener("change", e => {
     dropInterval = parseInt(e.target.value);
+    localStorage.setItem("tetris_speed", dropInterval);
 });
 
 const player={
@@ -196,6 +263,11 @@ const player={
 };
 
 function update(t=0){
+  if(gameOver){
+    requestAnimationFrame(update);
+    return;
+  }
+
   const dt=t-lastTime; lastTime=t;
   dropCounter+=dt;
 
@@ -217,6 +289,12 @@ function update(t=0){
 
 // ---------------- INPUT ----------------
 document.addEventListener("keydown",e=>{
+  if(e.key===" " && gameOver){
+    restartGame();
+    return;
+  }
+  if(gameOver) return;
+
   if(e.key==="ArrowLeft"){
     player.pos.x--;
     if(collide(arena,player))player.pos.x++;
@@ -239,6 +317,9 @@ document.addEventListener("keydown",e=>{
     else SFX.rotate();
   }
 });
+
+// Restart button click handler
+document.getElementById("restart-btn").addEventListener("click", restartGame);
 
 playerReset();
 update();
