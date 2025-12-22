@@ -43,15 +43,6 @@
             background: #000;
             border: 1px solid #333;
         }
-        .speed-container {
-            font-size: 11px;
-            margin-top: 8px;
-        }
-        .speed-container select {
-            font-size: 11px;
-            padding: 2px;
-            width: 100%;
-        }
         .score-container {
             font-size: 12px;
             margin-top: auto;
@@ -151,6 +142,21 @@
         .modal button:hover {
             background: #6b6bff;
         }
+        .modal select {
+            font-size: 16px;
+            padding: 8px;
+            width: 200px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .modal label {
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #aaa;
+        }
         /* Photo celebration overlay */
         .photo-overlay {
             display: none;
@@ -228,6 +234,13 @@
     <div class="modal">
         <h2>Block Puzzle</h2>
         <input id="player-name" type="text" maxlength="10" placeholder="Your name">
+        <label for="complexity">Complexity</label>
+        <select id="complexity">
+            <option value="800">Easy</option>
+            <option value="500">Normal</option>
+            <option value="300">Hard</option>
+            <option value="150">Expert</option>
+        </select>
         <br>
         <button id="start-btn">Start Game</button>
     </div>
@@ -246,14 +259,6 @@
     <div class="sidebar">
         <div class="next-piece-container">
             <canvas id="next-piece" width="80" height="80"></canvas>
-        </div>
-        <div class="speed-container">
-            <select id="speed">
-                <option value="800">Slow</option>
-                <option value="500">Normal</option>
-                <option value="300">Fast</option>
-                <option value="150">Very Fast</option>
-            </select>
         </div>
         <div class="score-container">
             <div id="score">0</div>
@@ -327,6 +332,10 @@ function startGame() {
     if (name) {
         localStorage.setItem("blocks_player_name", name);
     }
+    // Save complexity setting
+    dropInterval = parseInt(document.getElementById("complexity").value);
+    localStorage.setItem("blocks_speed", dropInterval);
+
     nameModal.style.display = "none";
     gameStarted = true;
     playerReset();
@@ -623,14 +632,9 @@ let dropCounter=0;
 let lastTime=0;
 let dropInterval = parseInt(localStorage.getItem("blocks_speed") || "500");
 
-// Initialize speed dropdown from saved preference
-const speedSelect = document.getElementById("speed");
-speedSelect.value = dropInterval.toString();
-
-speedSelect.addEventListener("change", e => {
-    dropInterval = parseInt(e.target.value);
-    localStorage.setItem("blocks_speed", dropInterval);
-});
+// Initialize complexity dropdown from saved preference
+const complexitySelect = document.getElementById("complexity");
+complexitySelect.value = dropInterval.toString();
 
 const player={
   pos:{x:5,y:0},
