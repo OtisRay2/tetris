@@ -396,7 +396,14 @@ const SFX = {
     rotate: () => playBeep(500, 0.06, "sawtooth", 0.1),
     drop: () => playBeep(120, 0.12, "square", 0.15),
     clear: () => playBeep(700, 0.25, "triangle", 0.25),
-    gameover: () => playBeep(80, 0.6, "sine", 0.3),
+    gameover: () => {
+        // Dramatic descending game over sound
+        playBeep(400, 0.15, "square", 0.3);
+        setTimeout(() => playBeep(300, 0.15, "square", 0.3), 150);
+        setTimeout(() => playBeep(200, 0.2, "square", 0.3), 300);
+        setTimeout(() => playBeep(100, 0.4, "sawtooth", 0.4), 500);
+        setTimeout(() => playBeep(50, 0.6, "sine", 0.3), 700);
+    },
     hardDrop: () => {
         // Impactful slam sound with quick decay
         playBeep(80, 0.15, "square", 0.4);
