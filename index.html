@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tetris</title>
+    <title>Block Puzzle</title>
     <style>
         * {
             box-sizing: border-box;
@@ -179,7 +179,7 @@
 <!-- NAME MODAL -->
 <div id="name-modal" class="modal-overlay">
     <div class="modal">
-        <h2>Tetris</h2>
+        <h2>Block Puzzle</h2>
         <input id="player-name" type="text" maxlength="10" placeholder="Your name">
         <br>
         <button id="start-btn">Start Game</button>
@@ -242,8 +242,8 @@ let gameStarted = false;
 
 // ---------------- SCORE ----------------
 let score = 0;
-let topscore = parseInt(localStorage.getItem("tetris_topscore") || "0");
-let topscoreName = localStorage.getItem("tetris_topscore_name") || "---";
+let topscore = parseInt(localStorage.getItem("blocks_topscore") || "0");
+let topscoreName = localStorage.getItem("blocks_topscore_name") || "---";
 
 // Player name handling
 const playerNameInput = document.getElementById("player-name");
@@ -251,7 +251,7 @@ const nameModal = document.getElementById("name-modal");
 const startBtn = document.getElementById("start-btn");
 
 // Initialize player name from localStorage
-playerNameInput.value = localStorage.getItem("tetris_player_name") || "";
+playerNameInput.value = localStorage.getItem("blocks_player_name") || "";
 
 function getPlayerName() {
     return playerNameInput.value.trim() || "Anonymous";
@@ -271,7 +271,7 @@ playerNameInput.addEventListener("keypress", e => {
 function startGame() {
     const name = playerNameInput.value.trim();
     if (name) {
-        localStorage.setItem("tetris_player_name", name);
+        localStorage.setItem("blocks_player_name", name);
     }
     nameModal.style.display = "none";
     gameStarted = true;
@@ -285,8 +285,8 @@ function addScore(rows) {
     if (score > topscore) {
         topscore = score;
         topscoreName = getPlayerName();
-        localStorage.setItem("tetris_topscore", topscore);
-        localStorage.setItem("tetris_topscore_name", topscoreName);
+        localStorage.setItem("blocks_topscore", topscore);
+        localStorage.setItem("blocks_topscore_name", topscoreName);
     }
     updateScoreDisplay();
 }
@@ -300,8 +300,8 @@ function showGameOver() {
     if (isNewHighScore) {
         topscore = score;
         topscoreName = getPlayerName();
-        localStorage.setItem("tetris_topscore", topscore);
-        localStorage.setItem("tetris_topscore_name", topscoreName);
+        localStorage.setItem("blocks_topscore", topscore);
+        localStorage.setItem("blocks_topscore_name", topscoreName);
         updateScoreDisplay();
     }
 
@@ -517,7 +517,7 @@ function arenaSweep(){
 
 let dropCounter=0;
 let lastTime=0;
-let dropInterval = parseInt(localStorage.getItem("tetris_speed") || "500");
+let dropInterval = parseInt(localStorage.getItem("blocks_speed") || "500");
 
 // Initialize speed dropdown from saved preference
 const speedSelect = document.getElementById("speed");
@@ -525,7 +525,7 @@ speedSelect.value = dropInterval.toString();
 
 speedSelect.addEventListener("change", e => {
     dropInterval = parseInt(e.target.value);
-    localStorage.setItem("tetris_speed", dropInterval);
+    localStorage.setItem("blocks_speed", dropInterval);
 });
 
 const player={

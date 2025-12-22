@@ -5,7 +5,7 @@ Alle noemenswaardige wijzigingen aan dit project worden gedocumenteerd in dit be
 ## [1.0.0] - 2025-12-07
 
 ### Toegevoegd
-- **Tetris game** - Volledig speelbare Tetris-game in een enkel HTML-bestand
+- **Block Puzzle game** - Volledig speelbare blokken-puzzelgame in een enkel HTML-bestand
   - Canvas-gebaseerde rendering (240x400 pixels)
   - Alle 7 standaard Tetromino's (T, O, L, J, I, S, Z)
   - Kleurrijke blokken met 7 verschillende kleuren
@@ -41,4 +41,4 @@ Alle noemenswaardige wijzigingen aan dit project worden gedocumenteerd in dit be
 - Speelveld: 12 kolommen x 20 rijen
 
 ### Opslag
-- Topscore wordt opgeslagen in `localStorage` onder de key `tetris_topscore`
+- Topscore wordt opgeslagen in `localStorage` onder de key `blocks_topscore`
