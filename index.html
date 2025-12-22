@@ -14,20 +14,58 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             margin: 0;
             padding: 10px;
             min-height: 100vh;
             touch-action: manipulation;
+            overflow-x: hidden;
         }
         .game-container {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: flex-start;
+        }
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            color: white;
+            font-family: Arial, sans-serif;
+            width: 80px;
+            height: 400px;
+        }
+        .next-piece-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #next-piece {
+            background: #000;
+            border: 1px solid #333;
+        }
+        .speed-container {
+            font-size: 11px;
+            margin-top: 8px;
+        }
+        .speed-container select {
+            font-size: 11px;
+            padding: 2px;
+            width: 100%;
+        }
+        .score-container {
+            font-size: 12px;
+            margin-top: auto;
+            padding-bottom: 5px;
+        }
+        .score-container div {
+            margin: 2px 0;
+        }
+        #score {
+            font-weight: bold;
+            font-size: 14px;
         }
         #game {
             display: block;
-            max-width: 100%;
-            height: auto;
         }
         .controls-container {
             display: none;
@@ -67,22 +105,64 @@
             background: #ff4b4b;
             width: 150px;
         }
+        /* Name modal */
+        .modal-overlay {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal {
+            background: #222;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .modal h2 {
+            margin: 0 0 20px 0;
+            font-size: 24px;
+        }
+        .modal input {
+            font-size: 18px;
+            padding: 10px;
+            width: 200px;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .modal button {
+            margin-top: 15px;
+            padding: 10px 30px;
+            font-size: 18px;
+            background: #4b4bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .modal button:hover {
+            background: #6b6bff;
+        }
         @media (max-width: 600px) {
             .controls-container {
                 display: block;
-            }
-            .score-container {
-                font-size: 20px !important;
-            }
-            .score-container > div:nth-child(3),
-            .score-container > div:nth-child(4) {
-                font-size: 14px !important;
             }
         }
         @media (max-height: 700px) and (max-width: 600px) {
             #game {
                 max-height: 300px;
                 width: auto;
+            }
+            .sidebar {
+                height: 300px;
             }
             .control-btn {
                 height: 50px;
@@ -96,44 +176,50 @@
 </head>
 <body>
 
-<!-- SCORES & CONTROLS -->
-<div class="score-container" style="color:white; font-family:Arial; font-size:28px; margin:10px;">
-    <div id="score">Score: 0</div>
-    <div id="topscore">Topscore: 0</div>
-    <div style="font-size:16px; margin-top:10px;">
-        Name: <input id="player-name" type="text" maxlength="10" placeholder="Enter name" style="font-size:16px; padding:2px; width:100px;">
-    </div>
-    <div style="font-size:16px; margin-top:10px;">
-        Speed: <select id="speed" style="font-size:16px; padding:2px;">
-            <option value="800">Slow</option>
-            <option value="500">Normal</option>
-            <option value="300">Fast</option>
-            <option value="150">Very Fast</option>
-        </select>
+<!-- NAME MODAL -->
+<div id="name-modal" class="modal-overlay">
+    <div class="modal">
+        <h2>Tetris</h2>
+        <input id="player-name" type="text" maxlength="10" placeholder="Your name">
+        <br>
+        <button id="start-btn">Start Game</button>
     </div>
 </div>
 
 <!-- SPEL -->
 <div class="game-container">
-    <!-- Next piece preview -->
-    <div style="color:white; font-family:Arial; text-align:center;">
-        <div style="font-size:14px; margin-bottom:5px;">NEXT</div>
-        <canvas id="next-piece" width="80" height="80" style="background:#000; border:1px solid #333;"></canvas>
+    <!-- Sidebar links -->
+    <div class="sidebar">
+        <div class="next-piece-container">
+            <canvas id="next-piece" width="80" height="80"></canvas>
+        </div>
+        <div class="speed-container">
+            <select id="speed">
+                <option value="800">Slow</option>
+                <option value="500">Normal</option>
+                <option value="300">Fast</option>
+                <option value="150">Very Fast</option>
+            </select>
+        </div>
+        <div class="score-container">
+            <div id="score">0</div>
+            <div id="topscore">Top: 0</div>
+        </div>
     </div>
 
     <!-- Main game -->
     <div style="position:relative;">
         <canvas id="game" width="240" height="400" style="background:#000; border:1px solid #333;"></canvas>
-    <div id="gameover" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); flex-direction:column; justify-content:center; align-items:center; color:white; font-family:Arial;">
-        <div style="font-size:32px; font-weight:bold; color:#ff4b4b; margin-bottom:20px;">GAME OVER</div>
-        <div style="font-size:18px; margin-bottom:10px;">Final Score: <span id="final-score">0</span></div>
-        <div id="new-highscore" style="font-size:16px; color:#4bff4b; margin-bottom:15px; display:none;">New High Score!</div>
-        <div id="highscore-display" style="font-size:14px; color:#ffff4b; margin-bottom:20px; padding:10px; background:rgba(255,255,255,0.1); border-radius:5px;">
-            High Score: <span id="highscore-name">---</span> - <span id="highscore-value">0</span>
+        <div id="gameover" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); flex-direction:column; justify-content:center; align-items:center; color:white; font-family:Arial;">
+            <div style="font-size:32px; font-weight:bold; color:#ff4b4b; margin-bottom:20px;">GAME OVER</div>
+            <div style="font-size:18px; margin-bottom:10px;">Final Score: <span id="final-score">0</span></div>
+            <div id="new-highscore" style="font-size:16px; color:#4bff4b; margin-bottom:15px; display:none;">New High Score!</div>
+            <div id="highscore-display" style="font-size:14px; color:#ffff4b; margin-bottom:20px; padding:10px; background:rgba(255,255,255,0.1); border-radius:5px;">
+                High Score: <span id="highscore-name">---</span> - <span id="highscore-value">0</span>
+            </div>
+            <button id="restart-btn" style="padding:10px 30px; font-size:18px; cursor:pointer; background:#4b4bff; color:white; border:none; border-radius:5px;">Play Again</button>
+            <div style="font-size:12px; margin-top:15px; color:#888;">Press SPACE to restart</div>
         </div>
-        <button id="restart-btn" style="padding:10px 30px; font-size:18px; cursor:pointer; background:#4b4bff; color:white; border:none; border-radius:5px;">Play Again</button>
-        <div style="font-size:12px; margin-top:15px; color:#888;">Press SPACE to restart</div>
-    </div>
     </div>
 </div>
 
@@ -152,28 +238,46 @@
 <script>
 // ---------------- GAME STATE ----------------
 let gameOver = false;
+let gameStarted = false;
 
 // ---------------- SCORE ----------------
 let score = 0;
 let topscore = parseInt(localStorage.getItem("tetris_topscore") || "0");
 let topscoreName = localStorage.getItem("tetris_topscore_name") || "---";
 
-// Initialize player name from localStorage
+// Player name handling
 const playerNameInput = document.getElementById("player-name");
-playerNameInput.value = localStorage.getItem("tetris_player_name") || "";
+const nameModal = document.getElementById("name-modal");
+const startBtn = document.getElementById("start-btn");
 
-// Save player name when changed
-playerNameInput.addEventListener("input", e => {
-    localStorage.setItem("tetris_player_name", e.target.value);
-});
+// Initialize player name from localStorage
+playerNameInput.value = localStorage.getItem("tetris_player_name") || "";
 
 function getPlayerName() {
     return playerNameInput.value.trim() || "Anonymous";
 }
 
 function updateScoreDisplay() {
-    document.getElementById("score").innerText = "Score: " + score;
-    document.getElementById("topscore").innerText = "Topscore: " + topscore + " (" + topscoreName + ")";
+    document.getElementById("score").innerText = score;
+    document.getElementById("topscore").innerText = "Top: " + topscore;
+}
+
+// Start game when button clicked
+startBtn.addEventListener("click", startGame);
+playerNameInput.addEventListener("keypress", e => {
+    if (e.key === "Enter") startGame();
+});
+
+function startGame() {
+    const name = playerNameInput.value.trim();
+    if (name) {
+        localStorage.setItem("tetris_player_name", name);
+    }
+    nameModal.style.display = "none";
+    gameStarted = true;
+    playerReset();
+    update();
+    updateScoreDisplay();
 }
 
 function addScore(rows) {
@@ -426,7 +530,7 @@ const player={
 };
 
 function update(t=0){
-  if(gameOver){
+  if(!gameStarted || gameOver){
     requestAnimationFrame(update);
     return;
   }
@@ -573,8 +677,7 @@ document.addEventListener("click", function resumeAudioClick() {
     document.removeEventListener("click", resumeAudioClick);
 }, { once: true });
 
-playerReset();
-update();
+// Don't auto-start - wait for name modal
 updateScoreDisplay();
 </script>
 </body>
