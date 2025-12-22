@@ -632,8 +632,9 @@ const player={
 };
 
 function update(t=0){
-  if(!gameStarted || gameOver){
+  if(!gameStarted || gameOver || photoShowing){
     requestAnimationFrame(update);
+    if(photoShowing) lastTime = t; // Reset time to prevent piece jumping after photo
     return;
   }
 
@@ -658,6 +659,7 @@ function update(t=0){
 
 // ---------------- INPUT ----------------
 document.addEventListener("keydown",e=>{
+  if(photoShowing) return; // Game paused for photo
   if(e.key===" " && gameOver){
     restartGame();
     return;
@@ -696,28 +698,28 @@ document.getElementById("restart-btn").addEventListener("click", restartGame);
 
 // ---------------- MOBILE TOUCH CONTROLS ----------------
 function moveLeft() {
-    if(gameOver) return;
+    if(gameOver || photoShowing) return;
     player.pos.x--;
     if(collide(arena, player)) player.pos.x++;
     else SFX.move();
 }
 
 function moveRight() {
-    if(gameOver) return;
+    if(gameOver || photoShowing) return;
     player.pos.x++;
     if(collide(arena, player)) player.pos.x--;
     else SFX.move();
 }
 
 function moveDown() {
-    if(gameOver) return;
+    if(gameOver || photoShowing) return;
     player.pos.y++;
     if(collide(arena, player)) player.pos.y--;
     else SFX.move();
 }
 
 function hardDrop() {
-    if(gameOver) return;
+    if(gameOver || photoShowing) return;
     // Move piece down until collision
     while(!collide(arena, player)) {
         player.pos.y++;
@@ -732,7 +734,7 @@ function hardDrop() {
 }
 
 function rotatePiece() {
-    if(gameOver) return;
+    if(gameOver || photoShowing) return;
     const old = JSON.parse(JSON.stringify(player.matrix));
     rotate(player.matrix, 1);
     if(collide(arena, player)) player.matrix = old;
