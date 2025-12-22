@@ -2,6 +2,40 @@
 
 Alle noemenswaardige wijzigingen aan dit project worden gedocumenteerd in dit bestand.
 
+## [2.0.0] - 2025-12-22
+
+### Toegevoegd
+- **Startscherm** - Nieuw welkomstscherm met spelopties
+  - Naam invoer voor gepersonaliseerde ervaring
+  - Complexity selectie (Easy, Normal, Hard, Expert)
+
+- **Hard Drop** - Instant drop functionaliteit
+  - Spatiebalk op desktop
+  - Drop knop op mobiel
+  - Slam geluidseffect bij landing
+
+- **Next Piece Preview** - Voorvertoning van het volgende blok aan de linkerkant
+
+- **Foto Viering** - Speciale viering bij het clearen van 4 rijen tegelijk (BLOCKS!)
+  - Random foto weergave
+  - Game pauzeert tijdens viering
+  - Speciaal vieringsgeluid
+
+- **Verbeterde Geluidseffecten**
+  - Dramatisch dalend game over geluid
+  - Slam geluid bij hard drop
+  - Celebratie geluid bij BLOCKS!
+
+- **Mobile Support**
+  - Touch controls voor mobiele apparaten
+  - Verbeterde mobiele layout
+  - Responsive design
+
+### Gewijzigd
+- Game hernoemd van "Blocks" naar "Block Puzzle"
+- localStorage keys bijgewerkt naar `blockpuzzle_*`
+- UI verbeteringen en border outline rond speelveld
+
 ## [1.0.0] - 2025-12-07
 
 ### Toegevoegd
