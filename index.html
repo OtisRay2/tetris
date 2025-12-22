@@ -151,6 +151,53 @@
         .modal button:hover {
             background: #6b6bff;
         }
+        /* Photo celebration overlay */
+        .photo-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            flex-direction: column;
+        }
+        .photo-overlay.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        .photo-overlay img {
+            max-width: 90%;
+            max-height: 70%;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(255,255,255,0.3);
+        }
+        .photo-overlay .blocks-text {
+            color: #ffff4b;
+            font-size: 48px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            text-shadow: 0 0 20px #ffff4b;
+            margin-bottom: 20px;
+            animation: pulse 0.5s ease infinite alternate;
+        }
+        .photo-overlay .close-hint {
+            color: #888;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+            margin-top: 20px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
         @media (max-width: 600px) {
             .controls-container {
                 display: block;
@@ -184,6 +231,13 @@
         <br>
         <button id="start-btn">Start Game</button>
     </div>
+</div>
+
+<!-- PHOTO CELEBRATION OVERLAY -->
+<div id="photo-overlay" class="photo-overlay">
+    <div class="blocks-text">BLOCKS!</div>
+    <img id="celebration-photo" src="" alt="Celebration">
+    <div class="close-hint">Click anywhere or press any key to continue</div>
 </div>
 
 <!-- SPEL -->
@@ -348,7 +402,45 @@ const SFX = {
         playBeep(80, 0.15, "square", 0.4);
         setTimeout(() => playBeep(60, 0.1, "square", 0.2), 30);
     },
+    blocks: () => {
+        // Special celebratory sound for 4-line clear
+        playBeep(523, 0.15, "triangle", 0.3);
+        setTimeout(() => playBeep(659, 0.15, "triangle", 0.3), 100);
+        setTimeout(() => playBeep(784, 0.15, "triangle", 0.3), 200);
+        setTimeout(() => playBeep(1047, 0.3, "triangle", 0.4), 300);
+    },
 };
+
+// ---------------- PHOTO CELEBRATION ----------------
+const photoOverlay = document.getElementById("photo-overlay");
+const celebrationPhoto = document.getElementById("celebration-photo");
+let photoShowing = false;
+
+function showRandomPhoto() {
+    // Use Lorem Picsum for random photos with cache-busting
+    const randomId = Math.floor(Math.random() * 1000);
+    celebrationPhoto.src = `https://picsum.photos/600/400?random=${randomId}&t=${Date.now()}`;
+    photoOverlay.classList.add("show");
+    photoShowing = true;
+    SFX.blocks();
+}
+
+function hidePhoto() {
+    if (!photoShowing) return;
+    photoOverlay.classList.remove("show");
+    photoShowing = false;
+}
+
+// Close photo on click
+photoOverlay.addEventListener("click", hidePhoto);
+
+// Close photo on any key press
+document.addEventListener("keydown", (e) => {
+    if (photoShowing) {
+        e.preventDefault();
+        hidePhoto();
+    }
+});
 
 // ---------------- CANVAS ----------------
 const canvas = document.getElementById("game");
@@ -510,8 +602,13 @@ function arenaSweep(){
     }
   }
   if(rows>0){
-    addScore(rows);   // ⭐ SCORE ENKEL VOOR GECLEARED RIJEN
-    SFX.clear();
+    addScore(rows);
+    if(rows === 4){
+      // BLOCKS! Show random photo celebration
+      showRandomPhoto();
+    } else {
+      SFX.clear();
+    }
   }
 }
 
