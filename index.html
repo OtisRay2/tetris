@@ -417,9 +417,9 @@ const celebrationPhoto = document.getElementById("celebration-photo");
 let photoShowing = false;
 
 function showRandomPhoto() {
-    // Use Lorem Picsum for random photos with cache-busting
+    // Use Lorem Picsum for random photos with cache-busting (portrait orientation)
     const randomId = Math.floor(Math.random() * 1000);
-    celebrationPhoto.src = `https://picsum.photos/600/400?random=${randomId}&t=${Date.now()}`;
+    celebrationPhoto.src = `https://picsum.photos/400/600?random=${randomId}&t=${Date.now()}`;
     photoOverlay.classList.add("show");
     photoShowing = true;
     SFX.blocks();
