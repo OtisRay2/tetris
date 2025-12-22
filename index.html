@@ -343,6 +343,11 @@ const SFX = {
     drop: () => playBeep(120, 0.12, "square", 0.15),
     clear: () => playBeep(700, 0.25, "triangle", 0.25),
     gameover: () => playBeep(80, 0.6, "sine", 0.3),
+    hardDrop: () => {
+        // Impactful slam sound with quick decay
+        playBeep(80, 0.15, "square", 0.4);
+        setTimeout(() => playBeep(60, 0.1, "square", 0.2), 30);
+    },
 };
 
 // ---------------- CANVAS ----------------
@@ -562,6 +567,10 @@ document.addEventListener("keydown",e=>{
   }
   if(gameOver) return;
 
+  if(e.key===" "){
+    hardDrop();
+    return;
+  }
   if(e.key==="ArrowLeft"){
     player.pos.x--;
     if(collide(arena,player))player.pos.x++;
@@ -608,6 +617,21 @@ function moveDown() {
     player.pos.y++;
     if(collide(arena, player)) player.pos.y--;
     else SFX.move();
+}
+
+function hardDrop() {
+    if(gameOver) return;
+    // Move piece down until collision
+    while(!collide(arena, player)) {
+        player.pos.y++;
+    }
+    player.pos.y--;
+    // Lock the piece
+    merge(arena, player);
+    SFX.hardDrop();
+    arenaSweep();
+    playerReset();
+    dropCounter = 0;
 }
 
 function rotatePiece() {
@@ -659,8 +683,18 @@ function addTouchHandler(element, handler) {
 
 addTouchHandler(btnLeft, moveLeft);
 addTouchHandler(btnRight, moveRight);
-addTouchHandler(btnDrop, moveDown);
 addTouchHandler(btnRotate, rotatePiece);
+
+// Hard drop button - single press only, no repeat
+btnDrop.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    if(audio.state === 'suspended') audio.resume();
+    hardDrop();
+}, { passive: false });
+btnDrop.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    hardDrop();
+});
 
 // Resume AudioContext on first user interaction (required for mobile browsers)
 document.addEventListener("touchstart", function resumeAudio() {
