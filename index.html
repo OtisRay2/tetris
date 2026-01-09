@@ -391,6 +391,11 @@ function restartGame() {
 const audio = new (window.AudioContext || window.webkitAudioContext)();
 
 function playBeep(freq = 440, duration = 0.08, type="square", volume=0.15) {
+    // Resume AudioContext if suspended (browser autoplay policy)
+    if (audio.state === 'suspended') {
+        audio.resume();
+    }
+
     const osc = audio.createOscillator();
     const gain = audio.createGain();
     osc.type = type;
